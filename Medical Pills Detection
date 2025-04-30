@@ -1,0 +1,194 @@
+# import cv2 
+from easygui import *
+import pyttsx3
+
+import os
+import time
+import shutil
+import pathlib
+import itertools
+from PIL import Image
+# import data handling tools
+import cv2
+import numpy as np
+import pandas as pd
+import seaborn as sns
+sns.set_style('darkgrid')
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix, classification_report
+# import Deep learning Libraries
+
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.optimizers import Adam, Adamax
+from tensorflow.keras.metrics import categorical_crossentropy
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Activation, Dropout, BatchNormalization
+from tensorflow.keras import regularizers
+from easygui import *
+# Ignore Warnings
+import warnings
+warnings.filterwarnings("ignore")
+TF_USE_LEGACY_KERAS=1
+
+loaded_model = tf.keras.models.load_model('pills.h5', compile=False)
+loaded_model.compile(Adamax(learning_rate= 0.001), loss= 'categorical_crossentropy', metrics= ['accuracy'])
+# message / information to be displayed on the screen
+#message = "This is a Message Box in EasyGUI"
+ 
+# title of the window
+#import extract 
+drug={'alaxan':'AB PHYLLINE--to treat and prevent symptoms of asthma, bronchitis, and chronic obstructive pulmonary disorder (a lung disorder in which airflow to the lung is blocked). It helps relax the muscles of the air passages, thus widening them and making them easier to breathe - Ab Phylline Capsule 15 is not recommended for children under 18 years of age - Capsule can be taken with the food in the evening. Take it at the same time every day to get the most benefit. ',
+     "bactidol":"BACTIDOL--IIts hexiditine for symptomatic treatment of acute sore throat. For symptomatic treatment of acute and chronic pharyngitis, catarrh (irritation or inflammation) of the upper respiratory tract, and relief of unpleasant post-operative sensation in the throat. Provides flavourful and convenient relief from SORE THROAT - CHILDERN of <6 YEARS can use and the Daily recommended dose is 1 lozenge ever 2-3 hours with maximum dose of 8 lozenges.",
+     "bioflu":"BIOFLU--Phenylephrine HCl,medicine is used for the relief of clogged nose, runny nose, cough from postnasal drip, itchy and watery eyes, sneezing, headache, sore throat, body aches, and fever associated with the common cold, allergic rhinitis, sinusitis, flu and other minor respiratory tract infections - For children and adults over 12 years old, take 1 caplet every 6 hours ",
+     "biogesic":"FISH OIL--fish oil supplements might help reduce pain, improve morning stiffness and relieve joint tenderness in people with rheumatoid arthritis. While relief is often modest, it might be enough to reduce the need for anti-inflammatory medications - Generally, up to 3,000 mg of fish oil daily is considered safe for adults to consume",
+     "dayzinc":"DAYZINC--Sodium Ascorbate + Zinc (Dayzinc) is used for the treatment and prevention of Vitamin C and Zinc deficiency. It completely reverses symptoms of deficiency. Vitamin C deficiency leads to the development of a well-defined syndrome known as scurvy - Adult: 1 capsule daily. Chewable Tab: Adult: 2 tablet daily. Children 4-15 years old: 1/2 - 1 tablet. Children > 15 years old: 2 tablet daily.",
+     "decolgen":"DECLOGEN--Diclofenac and Paracetamol is used for the relief of symptoms caused by the common cold, sinusitis, flu and other minor respiratory tract infections, such as a clogged nose, headache, body aches, and fever  - Adults and children 12 years and older: Orally, 1 tablet every 6 hours",
+     "fish oil":" FISH OIL--fish oil supplements might help reduce pain, improve morning stiffness and relieve joint tenderness in people with rheumatoid arthritis. While relief is often modest, it might be enough to reduce the need for anti-inflammatory medications - Generally, up to 3,000 mg of fish oil daily is considered safe for adults to consume",
+     "kremil s":"Famotidine, Calcium Carbonate and Magnesium Hydroxide  is for milder symptoms of hyperacidity/acidity, and it also relieves gassiness. It neutralizes stomach acid in as fast as 5 minutes and relief lasts up to 2 hours - Maximum dose of 8 tablets per day. Kremil-S Advance Adults and Children 12 years and older: Take 1 tablet as needed, with a maximum of 2 tablets every 24 hours",
+     "medicol":"MEDICOL--Ibrufin For the relief of headache. For the relief of toothache, muscular aches, minor arthritis pain, backache, minor aches and pains associated with the common cold, and pain of menstrual cramps (dysmenorrhea) - Adults and children 12 years old and above: One softgel capsule up to 3 times a day, as needed.",
+     "neozip":"NEOZIP--phenylephrine HCI, chlorphenamine maleate, paracetamol and zinc medicine is used for the relief of clogged nose, runny nose, postnasal drip, itchy and watery eyes, sneezing, headache, body aches and fever associated with the common cold, allergic rhinitis, sinusitis, flu, and other minor respiratory tract infections - Adults: Orally, 1 tablet every 6 hours, or as recommended by a doctor , Severe liver damage may occur if: A child takes more than 5 doses in 24 hours, which is the maximum daily amount of Paracetamol"
+     }
+class_labels=['alaxan', 'bactidol', 'bioflu', 'biogesic', 'dayzinc', 'decolgen', 'fish oil', 'kremil s', 'medicol', 'neozip']
+#cam = cv2.VideoCapture(0)
+#result, image = cam.read()
+#import PIL
+ # object creation
+def describe_mediciene(details,image):
+        engine = pyttsx3.init() 
+        """ RATE"""
+        rate = engine.getProperty('rate')   # getting details of current speaking rate
+        print (rate)                        #printing current voice rate
+        engine.setProperty('rate', 125)     # setting up new voice rate """VOLUME"""
+        volume = engine.getProperty('volume')   #getting to know current volume level (min=0 and max=1)
+        print (volume)                          #printing current volume level
+        engine.setProperty('volume',1.0)    # setting up volume level  between 0 and 1
+        
+        """VOICE"""
+        voices = engine.getProperty('voices')       #getting details of current voice
+        #engine.setProperty('voice', voices[0].id)  #changing index, changes voices. o for male
+        engine.setProperty('voice', voices[1].id)   #changing index, changes voices. 1 for female
+        engine.say("details")
+        engine.say(details)
+        title = "drug and its usage"
+ 
+        # text of the Ok button
+        ok_btn_txt = "Continue"
+ 
+        # creating a message box
+        
+        #output = msgbox(details, title, ok_btn_txt)
+        #engine.say('My current speaking rate is ' + str(rate))
+        engine.runAndWait()
+        output = buttonbox(details, "drug information", image =image, choices = ["close"])
+        #output = msgbox(details, title, ok_btn_txt)
+        #output = buttonbox("pill details", "drug information", image ='pill_data/Drug Vision/Data Combined/Bioflu/00000002.jpg', choices = ["close"])
+        #if engine._inLoop:
+        #    engine.endLoop()
+        #engine.runAndWait()
+        if engine._inLoop:
+            engine.endLoop()
+        
+        engine.stop()#prompt =f"""
+#Extract the following information from the provided pill sheet image:
+
+#* **Drug Name:** 
+#* **Dosage:** 
+#* **Instructions:** 
+#* **Warnings:** 
+#* **Other relevant information:** 
+#"""
+def drug_detect_cam():
+    cam = cv2.VideoCapture(0)
+    while True:
+        result, image = cam.read()
+        if result :
+            cv2.imshow("frame1", image)
+            cv2.imwrite("med_image.jpg",image)
+            #cv2.waitKey(0)
+            if cv2.waitKey(2) & 0xFF == ord('s'):
+                #cv2.imwrite("med_image.jpg",image)
+                print("taken input")
+                image = Image.open("med_image.jpg")
+                # Preprocess the image
+                img = image.resize((224, 224))
+                img_array = tf.keras.preprocessing.image.img_to_array(img)
+                img_array = tf.expand_dims(img_array, 0)
+
+                # Make predictions
+                predictions = loaded_model.predict(img_array) #class_labels = classes
+    #class_labels=['Alaxan','Bactidol','Bioflu','DayZinc']
+                score = tf.nn.softmax(predictions[0])
+                t_index=np.argmax(score.numpy().tolist())
+                print(predictions[0])
+                print(t_index)
+                #print(f"{class_labels[tf.math.argmax(score)]}")
+                tablet1=class_labels[tf.argmax(score)]
+                tablet=class_labels[t_index-1]
+                print(tablet1)
+                details=drug[tablet1]
+                #msgbox(details, "drug information", "close" )
+                #output = buttonbox("pill details", "drug information", image ='', choices = ["close"])
+                describe_mediciene(details,"med_image.jpg")
+                #img_data = PIL.Image.open("med_image.jpg")
+                #response=extract.get_information(img_data,prompt)
+                #details="experiment"
+                #details=response.replace("/n","").replace("*","")
+                #print(details)
+                #extract.describe_mediciene(details)
+
+                continue          
+                #break
+            cv2.imshow("frame1", image)
+            if cv2.waitKey(2) & 0xFF == ord('q'):
+                break
+
+    #cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    cam.release()
+def drug_detect_image():
+    image_path=fileopenbox("select image ")
+    image = Image.open(image_path)
+
+    # Preprocess the image
+    img = image.resize((224, 224))
+    img_array = tf.keras.preprocessing.image.img_to_array(img)
+    img_array = tf.expand_dims(img_array, 0)
+
+    # Make predictions
+    predictions = loaded_model.predict(img_array)
+    #class_labels = classes
+    class_labels=['alaxan', 'bactidol', 'bioflu', 'biogesic', 'dayzinc', 'decolgen', 'fish oil', 'kremil s', 'medicol', 'neozip']
+    score = tf.nn.softmax(predictions[0])
+    print(score)
+    print(f"{class_labels[tf.argmax(score)]}")
+    tablet1=class_labels[tf.argmax(score)]
+    details=drug[tablet1]
+    describe_mediciene(details,image_path)
+    return
+
+
+if __name__=="__main__" :
+    while True:  # item choices
+        choices = ["image",  "cam","exit"]
+
+        select = choicebox("select one of the following", "pill drug identification ", choices)
+
+        if select=="exit":
+            break
+        elif select=="image":
+            drug_detect_image()
+        elif select=="cam":
+            drug_detect_cam()
+
+        else :
+            continue
+            #detect_pill(select)
+            #msgbox("pill", "drug information", "close" )
+            #output = buttonbox("pill details", "drug information", image ='pill_data/Drug Vision/Data Combined/Bioflu/00000002.jpg', choices = ["close"])
+
+
+
+
